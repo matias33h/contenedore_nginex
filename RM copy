@@ -1,0 +1,68 @@
+# primer contenedor
+
+docker run -d -p 8088:80 -v ${PWD}/apache1:/var/www/html --name primer-contenedor-php php:apache-bullseye
+docker exec -it primer-contenedor-php docker-php-ext-install mysqli
+docker exec -it primer-contenedor-php docker-php-ext-enable mysqli
+
+
+# segundo contenedor
+
+docker run -d -p 8089:80 -v ${PWD}/apache2:/var/www/html --name segundo-contenedor-php php:apache-bullseye
+docker exec -it segundo-contenedor-php docker-php-ext-install mysqli
+docker exec -it segundo-contenedor-php docker-php-ext-enable mysqli
+
+
+
+# contenedor de mysql
+ 
+docker run -d -p 3306:3306 --name mi-contenedor-mysql2 -e MYSQL_ROOT_PASSWORD=root1 -v ${PWD}/db:/var/lib/mysql mysql:debian
+docker exec -it mi-contenedor-mysql2 mysql -u root -proot1 -e "CREATE DATABASE IF NOT EXISTS prueba;"
+# docker exec -it mi-contenedor-mysql2 mysql -u root -proot1 prueba < datos.sql
+
+Get-Content datos.sql | docker exec -i mi-contenedor-mysql2 mysql -u root -proot1 prueba
+
+
+# comando para acceder al contenedor 
+docker exec -it primer-contenedor-php /bin/bash
+docker exec -it segundo-contenedor-php /bin/bash
+
+# driver mysql
+
+docker-php-ext-install mysqli
+docker-php-ext-enable mysqli
+
+service apache2 restart
+
+# inspeccionar el ip del contenedor y colocarlo en php  $servername = "172.17.0.2";
+
+docker inspect mi-contenedor-mysql2
+
+
+
+
+
+# levantar el contenedor de haproxy y copiar el archivo haproxy
+
+docker run -d --name haproxy-container2 -p 8085:80 -v ${PWD}/haproxy:/usr/local/etc/haproxy haproxy:latest
+
+
+
+
+# docker run -d --name haproxy-container2 -p 8085:80 haproxy:latest
+
+
+
+
+
+#  comandos de Windows para copiar el archivo haproxy.cfg al contenedor de haproxy:
+# codigo similares probar uno de los dos 
+
+# docker cp "C:\Users\MECATRONICA 2\Desktop\Contenedores_con_Apache_y_mysql\haproxy\haproxy.cfg" haproxy-container:/usr/local/etc/haproxy/haproxy.cfg
+
+
+# docker cp ${PWD}/haproxy/haproxy.cfg haproxy-container2:/usr/local/etc/haproxy/haproxy.cfg
+
+
+
+# inpeccionar el contenedor
+docker logs haproxy-container2
